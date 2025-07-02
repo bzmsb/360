@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能手机商店 - 高品质手机选购平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#36CFC9',
+            accent: '#FF4D4F',
+            dark: '#1D2129',
+            light: '#F5F7FA'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义样式 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .transition-transform-opacity {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+      }
+      .hover-scale {
+        transition: transform 0.3s ease;
+      }
+      .hover-scale:hover {
+        transform: scale(1.05);
+      }
+      .org-tree-line {
+        @apply border-l-2 border-gray-200 ml-3 pl-6;
+      }
+      .org-tree-node {
+        @apply flex items-center mb-3 cursor-pointer;
+      }
+      .org-tree-toggle {
+        @apply w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center mr-2 transition-transform duration-300;
+      }
+      .org-tree-toggle.open {
+        @apply rotate-45;
+      }
+      .news-card {
+        @apply relative rounded-xl overflow-hidden shadow-md hover-scale h-80;
+      }
+      .news-overlay {
+        @apply absolute inset-0 bg-gradient-to-t from-black/80 to-transparent;
+      }
+      .news-content {
+        @apply absolute bottom-0 left-0 p-6 text-white;
+      }
+      .news-dot {
+        @apply w-3 h-3 rounded-full bg-white/30 cursor-pointer transition-colors;
+      }
+      .news-dot.active {
+        @apply bg-white;
+      }
+      .sidebar-fixed {
+        @apply fixed top-20 left-0 bottom-0 w-64 overflow-y-auto bg-white shadow-md p-6 z-40 hidden lg:block;
+      }
+      .main-content {
+        @apply lg:ml-64;
+      }
+      .chart-container {
+        @apply w-full h-80 rounded-xl shadow-sm bg-white p-4 mb-6;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 text-dark">
+  <!-- 导航栏 -->
+  <header id="navbar" class="fixed w-full top-0 z-50 bg-white/95 shadow-sm transition-all duration-300">
+    <div class="container mx-auto px-4">
+      <nav class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <a href="#" class="text-primary font-bold text-xl">PhoneStore</a>
+          <div class="hidden md:flex ml-10 space-x-8">
+            <a href="#" class="text-dark hover:text-primary transition-colors font-medium">首页</a>
+            <a href="#news" class="text-dark hover:text-primary transition-colors font-medium">热点新闻</a>
+            <a href="#products" class="text-dark hover:text-primary transition-colors font-medium">热门产品</a>
+            <a href="#features" class="text-dark hover:text-primary transition-colors font-medium">特色</a>
+            <a href="#organization" class="text-dark hover:text-primary transition-colors font-medium">组织架构</a>
+            <a href="#reviews" class="text-dark hover:text-primary transition-colors font-medium">评价</a>
+            <a href="#contact" class="text-dark hover:text-primary transition-colors font-medium">联系我们</a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="#" class="text-dark hover:text-primary transition-colors">
+            <i class="fa fa-search text-lg"></i>
+          </a>
+          <a href="#" class="text-dark hover:text-primary transition-colors relative">
+            <i class="fa fa-shopping-cart text-lg"></i>
+            <span class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+          </a>
+          <a href="#" class="hidden md:block bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
+            登录
+          </a>
+          <button class="md:hidden text-dark hover:text-primary transition-colors" id="mobile-menu-button">
+            <i class="fa fa-bars text-xl"></i>
+          </button>
+        </div>
+      </nav>
+      
+      <!-- 移动端菜单 -->
+      <div id="mobile-menu" class="md:hidden hidden bg-white pb-4 rounded-b-lg shadow-lg">
+        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100">首页</a>
+          <a href="#news" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100">热点新闻</a>
+          <a href="#products" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100">热门产品</a>
+          <a href="#features" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100">特色</a>
+          <a href="#organization" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100">组织架构</a>
+          <a href="#reviews" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100">评价</a>
+          <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100">联系我们</a>
+          <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-primary text-white">登录</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 侧边栏：热门产品和ECharts图表 -->
+  <div class="sidebar-fixed" id="sidebar">
+    <div class="mb-8">
+      <h3 class="text-lg font-bold mb-4 text-dark">热门产品</h3>
+      
+      <!-- 产品1：智能手机 ProMax -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 hover-scale">
+        <div class="relative">
+          <img src="https://picsum.photos/600/400?random=101" alt="智能手机ProMax" class="w-full h-40 object-cover">
+          <div class="absolute top-2 right-2 bg-accent text-white text-xs px-2 py-1 rounded-full">
+            新品
+          </div>
+        </div>
+        <div class="p-4">
+          <h4 class="text-base font-bold text-dark mb-1">智能手机 ProMax</h4>
+          <div class="flex items-center mb-2">
+            <div class="flex text-yellow-400 text-xs">
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star-half-o"></i>
+            </div>
+            <span class="ml-1 text-gray-600 text-xs">(128)</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-primary font-bold">¥7,999</span>
+            <button class="bg-primary/10 hover:bg-primary/20 text-primary text-xs px-3 py-1 rounded-lg transition-colors">
+              查看详情
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 产品2：智能手机 Ultra -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 hover-scale">
+        <div class="relative">
+          <img src="https://picsum.photos/600/400?random=102" alt="智能手机Ultra" class="w-full h-40 object-cover">
+          <div class="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+            畅销
+          </div>
+        </div>
+        <div class="p-4">
+          <h4 class="text-base font-bold text-dark mb-1">智能手机 Ultra</h4>
+          <div class="flex items-center mb-2">
+            <div class="flex text-yellow-400 text-xs">
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+            </div>
+            <span class="ml-1 text-gray-600 text-xs">(256)</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-primary font-bold">¥6,499</span>
+            <button class="bg-primary/10 hover:bg-primary/20 text-primary text-xs px-3 py-1 rounded-lg transition-colors">
+              查看详情
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 产品3：智能手机 Lite -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 hover-scale">
+        <div class="relative">
+          <img src="https://picsum.photos/600/400?random=103" alt="智能手机Lite" class="w-full h-40 object-cover">
+          <div class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+            特惠
+          </div>
+        </div>
+        <div class="p-4">
+          <h4 class="text-base font-bold text-dark mb-1">智能手机 Lite</h4>
+          <div class="flex items-center mb-2">
+            <div class="flex text-yellow-400 text-xs">
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star-o"></i>
+            </div>
+            <span class="ml-1 text-gray-600 text-xs">(96)</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-primary font-bold">¥3,299</span>
+            <button class="bg-primary/10 hover:bg-primary/20 text-primary text-xs px-3 py-1 rounded-lg transition-colors">
+              查看详情
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center">
+        <a href="#products" class="text-primary hover:text-primary/80 text-sm font-medium">
+          查看全部产品 <i class="fa fa-angle-right ml-1"></i>
+        </a>
+      </div>
+    </div>
+    
+    <!-- ECharts 叙事图：销量趋势 -->
+    <div class="chart-container">
+      <h3 class="text-lg font-bold mb-4 text-dark">销量趋势</h3>
+      <div id="salesChart" class="w-full h-[280px]"></div>
+    </div>
+    
+    <!-- ECharts 饼图：产品销量占比 -->
+    <div class="chart-container">
+      <h3 class="text-lg font-bold mb-4 text-dark">产品销量占比</h3>
+      <div id="pieChart" class="w-full h-[280px]"></div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- 英雄区/轮播图 -->
+    <section class="pt-24 pb-16 bg-gradient-to-b from-blue-50 to-white">
+      <div class="container mx-auto px-4">
+        <div id="hero-carousel" class="relative overflow-hidden rounded-xl shadow-lg">
+          <div class="carousel-container flex transition-transform duration-500 ease-in-out" id="carousel-container">
+            <!-- 轮播项1 -->
+            <div class="carousel-item min-w-full">
+              <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 p-8 md:p-12">
+                  <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-dark leading-tight text-shadow">
+                    全新 <span class="text-primary">ProMax</span> 系列
+                  </h1>
+                  <p class="mt-4 text-lg text-gray-600 max-w-lg">
+                    搭载最新处理器，超高清摄像头，超长续航，带给你前所未有的使用体验。
+                  </p>
+                  <div class="mt-8 flex space-x-4">
+                    <a href="#products" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-all hover:shadow-lg">
+                      立即购买
+                    </a>
+                    <a href="#" class="border border-primary text-primary hover:bg-primary/5 px-6 py-3 rounded-lg font-medium transition-colors">
+                      了解更多
+                    </a>
+                  </div>
+                </div>
+                <div class="md:w-1/2 p-4 md:p-8">
+                  <img src="https://picsum.photos/800/600?random=104" alt="智能手机ProMax" class="w-full h-auto rounded-lg shadow-md hover-scale">
+                </div>
+              </div>
+            </div>
+            
+            <!-- 轮播项2 -->
+            <div class="carousel-item min-w-full">
+              <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 p-8 md:p-12">
+                  <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-dark leading-tight text-shadow">
+                    轻薄设计 <span class="text-primary">Ultra</span>
+                  </h1>
+                  <p class="mt-4 text-lg text-gray-600 max-w-lg">
+                    仅7.2mm机身，185g重量，采用最新材质，打造极致手感与视觉体验。
+                  </p>
+                  <div class="mt-8 flex space-x-4">
+                    <a href="#products" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-all hover:shadow-lg">
+                      立即购买
+                    </a>
+                    <a href="#" class="border border-primary text-primary hover:bg-primary/5 px-6 py-3 rounded-lg font-medium transition-colors">
+                      了解更多
+                    </a>
+                  </div>
+                </div>
+                <div class="md:w-1/2 p-4 md:p-8">
+                  <img src="https://picsum.photos/800/600?random=105" alt="智能手机Ultra" class="w-full h-auto rounded-lg shadow-md hover-scale">
+                </div>
+              </div>
+            </div>
+            
+            <!-- 轮播项3 -->
+            <div class="carousel-item min-w-full">
+              <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 p-8 md:p-12">
+                  <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-dark leading-tight text-shadow">
+                    超值 <span class="text-primary">Lite</span> 版
+                  </h1>
+                  <p class="mt-4 text-lg text-gray-600 max-w-lg">
+                    高性能与高性价比的完美结合，满足日常使用的所有需求。
+                  </p>
+                  <div class="mt-8 flex space-x-4">
+                    <a href="#products" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-all hover:shadow-lg">
+                      立即购买
+                    </a>
+                    <a href="#" class="border border-primary text-primary hover:bg-primary/5 px-6 py-3 rounded-lg font-medium transition-colors">
+                      了解更多
+                    </a>
+                  </div>
+                </div>
+                <div class="md:w-1/2 p-4 md:p-8">
+                  <img src="https://picsum.photos/800/600?random=106" alt="智能手机Lite" class="w-full h-auto rounded-lg shadow-md hover-scale">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 轮播控制按钮 -->
+          <button class="absolute top-1/2 left-4 -translate-y-1/2 bg-white/80 hover:bg-white text-primary w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors" id="prev-btn">
+            <i class="fa fa-angle-left text-xl"></i>
+          </button>
+          <button class="absolute top-1/2 right-4 -translate-y-1/2 bg-white/80 hover:bg-white text-primary w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors" id="next-btn">
+            <i class="fa fa-angle-right text-xl"></i>
+          </button>
+          
+          <!-- 轮播指示器 -->
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+            <button class="w-3 h-3 rounded-full bg-primary carousel-indicator active" data-index="0"></button>
+            <button class="w-3 h-3 rounded-full bg-gray-300 carousel-indicator" data-index="1"></button>
+            <button class="w-3 h-3 rounded-full bg-gray-300 carousel-indicator" data-index="2"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 热点新闻 -->
+    <section id="news" class="py-16 bg-gray-50">
+      <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark">热点新闻</h2>
+          <p class="mt-4 text-gray-600 max-w-2xl mx-auto">关注行业动态，了解最新科技资讯</p>
+        </div>
+        
+        <div class="relative">
+          <div id="news-carousel" class="overflow-hidden">
+            <div class="flex transition-transform duration-500 ease-in-out" id="news-container">
+              <!-- 新闻1 -->
+              <div class="min-w-full md:min-w-[50%] lg:min-w-[33.333%] p-4">
+                <a href="https://tech.sina.com.cn" target="_blank" class="news-card">
+                  <img src="https://picsum.photos/800/500?random=7" alt="全球智能手机市场动态" class="w-full h-full object-cover">
+                  <div class="news-overlay"></div>
+                  <div class="news-content">
+                    <span class="text-sm bg-primary/80 px-3 py-1 rounded-full">科技</span>
+                    <h3 class="text-xl font-bold mt-2">全球智能手机市场第二季度增长5%，中国品牌占据主导地位</h3>
+                    <p class="text-sm text-white/80 mt-2">据最新市场研究报告显示，全球智能手机出货量在第二季度同比增长5%，中国品牌继续扩大市场份额...</p>
+                    <div class="mt-4 flex items-center">
+                      <span class="text-xs text-white/70">新浪科技</span>
+                      <span class="mx-2 text-white/50">•</span>
+                      <span class="text-xs text-white/70">2小时前</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              
+              <!-- 新闻2 -->
+              <div class="min-w-full md:min-w-[50%] lg:min-w-[33.333%] p-4">
+                <a href="https://www.baidu.com" target="_blank" class="news-card">
+                  <img src="https://picsum.photos/800/500?random=8" alt="新一代处理器发布" class="w-full h-full object-cover">
+                  <div class="news-overlay"></div>
+                  <div class="news-content">
+                    <span class="text-sm bg-accent/80 px-3 py-1 rounded-full">新品</span>
+                    <h3 class="text-xl font-bold mt-2">科技巨头发布新一代处理器，性能提升40%，功耗降低30%</h3>
+                    <p class="text-sm text-white/80 mt-2">某科技巨头今日发布了新一代移动处理器，采用最新制程工艺，性能较上一代提升40%，同时功耗降低30%...</p>
+                    <div class="mt-4 flex items-center">
+                      <span class="text-xs text-white/70">百度科技</span>
+                      <span class="mx-2 text-white/50">•</span>
+                      <span class="text-xs text-white/70">5小时前</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              
+              <!-- 新闻3 -->
+              <div class="min-w-full md:min-w-[50%] lg:min-w-[33.333%] p-4">
+                <a href="https://www.163.com" target="_blank" class="news-card">
+                  <img src="https://picsum.photos/800/500?random=9" alt="折叠屏手机技术突破" class="w-full h-full object-cover">
+                  <div class="news-overlay"></div>
+                  <div class="news-content">
+                    <span class="text-sm bg-secondary/80 px-3 py-1 rounded-full">创新</span>
+                    <h3 class="text-xl font-bold mt-2">折叠屏技术取得重大突破，耐用性提升500%，成本降低30%</h3>
+                    <p class="text-sm text-white/80 mt-2">折叠屏手机技术迎来重大突破，新一代折叠屏材料的耐用性提升了500%，同时生产成本降低了30%...</p>
+                    <div class="mt-4 flex items-center">
+                      <span class="text-xs text-white/70">网易科技</span>
+                      <span class="mx-2 text-white/50">•</span>
+                      <span class="text-xs text-white/70">昨天</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              
+              <!-- 新闻4 -->
+              <div class="min-w-full md:min-w-[50%] lg:min-w-[33.333%] p-4">
+                <a href="https://www.tencent.com" target="_blank" class="news-card">
+                  <img src="https://picsum.photos/800/500?random=10" alt="手机摄影技术革新" class="w-full h-full object-cover">
+                  <div class="news-overlay"></div>
+                  <div class="news-content">
+                    <span class="text-sm bg-primary/80 px-3 py-1 rounded-full">技术</span>
+                    <h3 class="text-xl font-bold mt-2">革命性手机摄影技术发布，可媲美专业相机效果</h3>
+                    <p class="text-sm text-white/80 mt-2">一家创新科技公司今日发布了革命性的手机摄影技术，通过AI算法和硬件优化，手机拍照效果可媲美专业相机...</p>
+                    <div class="mt-4 flex items-center">
+                      <span class="text-xs text-white/70">腾讯科技</span>
+                      <span class="mx-2 text-white/50">•</span>
+                      <span class="text-xs text-white/70">2天前</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              
+              <!-- 新闻5 -->
+              <div class="min-w-full md:min-w-[50%] lg:min-w-[33.333%] p-4">
+                <a href="https://www.sohu.com" target="_blank" class="news-card">
+                  <img src="https://picsum.photos/800/500?random=11" alt="5G技术发展趋势" class="w-full h-full object-cover">
+                  <div class="news-overlay"></div>
+                  <div class="news-content">
+                    <span class="text-sm bg-accent/80 px-3 py-1 rounded-full">趋势</span>
+                    <h3 class="text-xl font-bold mt-2">全球5G用户突破10亿，下一代通信技术研发加速</h3>
+                    <p class="text-sm text-white/80 mt-2">据行业报告显示，全球5G用户数量已突破10亿，同时各大科技公司正加速研发下一代通信技术...</p>
+                    <div class="mt-4 flex items-center">
+                      <span class="text-xs text-white/70">搜狐科技</span>
+                      <span class="mx-2 text-white/50">•</span>
+                      <span class="text-xs text-white/70">3天前</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 新闻轮播控制按钮 -->
+          <button class="absolute top-1/2 left-2 -translate-y-1/2 bg-white/80 hover:bg-white text-primary w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors z-10" id="news-prev-btn">
+            <i class="fa fa-angle-left text-xl"></i>
+          </button>
+          <button class="absolute top-1/2 right-2 -translate-y-1/2 bg-white/80 hover:bg-white text-primary w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors z-10" id="news-next-btn">
+            <i class="fa fa-angle-right text-xl"></i>
+          </button>
+          
+          <!-- 新闻轮播指示器 -->
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+            <button class="news-dot active" data-index="0"></button>
+            <button class="news-dot" data-index="1"></button>
+            <button class="news-dot" data-index="2"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 热门产品 -->
+    <section id="products" class="py-16 bg-white">
+      <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark">热门产品</h2>
+          <p class="mt-4 text-gray-600 max-w-2xl mx-auto">探索我们的明星产品，选择最适合你的智能手机</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- 产品1：智能手机 ProMax -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden hover-scale">
+            <div class="relative">
+              <img src="https://picsum.photos/600/400?random=104" alt="智能手机ProMax" class="w-full h-64 object-cover">
+              <div class="absolute top-4 right-4 bg-accent text-white text-xs px-3 py-1 rounded-full">
+                新品
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex justify-between items-start mb-3">
+                <h3 class="text-xl font-bold text-dark">智能手机 ProMax</h3>
+                <div class="flex text-yellow-400">
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star-half-o"></i>
+                </div>
+              </div>
+              <p class="text-gray-600 mb-4">
+                搭载最新处理器，6.7英寸超视网膜XDR显示屏，1亿像素摄像头，120Hz刷新率，为你带来卓越体验。
+              </p>
+              <div class="flex justify-between items-center">
+                <span class="text-2xl font-bold text-primary">¥7,999</span>
+                <button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-colors">
+                  立即购买
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 产品2：智能手机 Ultra -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden hover-scale">
+            <div class="relative">
+              <img src="https://picsum.photos/600/400?random=105" alt="智能手机Ultra" class="w-full h-64 object-cover">
+              <div class="absolute top-4 right-4 bg-primary text-white text-xs px-3 py-1 rounded-full">
+                畅销
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex justify-between items-start mb-3">
+                <h3 class="text-xl font-bold text-dark">智能手机 Ultra</h3>
+                <div class="flex text-yellow-400">
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                </div>
+              </div>
+              <p class="text-gray-600 mb-4">
+                6.5英寸AMOLED屏幕，6400万像素三摄系统，超强续航能力，轻薄设计，是商务与生活的完美选择。
+              </p>
+              <div class="flex justify-between items-center">
+                <span class="text-2xl font-bold text-primary">¥6,499</span>
+                <button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-colors">
+                  立即购买
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 产品3：智能手机 Lite -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden hover-scale">
+            <div class="relative">
+              <img src="https://picsum.photos/600/400?random=106" alt="智能手机Lite" class="w-full h-64 object-cover">
+              <div class="absolute top-4 right-4 bg-green-500 text-white text-xs px-3 py-1 rounded-full">
+                特惠
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex justify-between items-start mb-3">
+                <h3 class="text-xl font-bold text-dark">智能手机 Lite</h3>
+                <div class="flex text-yellow-400">
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star"></i>
+                  <i class="fa fa-star-o"></i>
+                </div>
+              </div>
+              <p class="text-gray-600 mb-4">
+                6.3英寸全面屏，4800万像素主摄，大容量电池，快速充电，高性价比之选，满足日常使用需求。
+              </p>
+              <div class="flex justify-between items-center">
+                <span class="text-2xl font-bold text-primary">¥3,299</span>
+                <button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-colors">
+                  立即购买
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-12">
+          <a href="#" class="inline-flex items-center text-primary hover:text-primary/80 font-medium">
+            查看全部产品 <i class="fa fa-angle-right ml-2"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 产品特色 -->
+    <section id="features" class="py-16 bg-gray-50">
+      <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark">产品特色</h2>
+          <p class="mt-4 text-gray-600 max-w-2xl mx-auto">我们的智能手机拥有多项领先技术，为你带来卓越体验</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- 特色1 -->
+          <div class="bg-white rounded-xl shadow-sm p-8 hover-scale">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <i class="fa fa-camera text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-dark mb-3">超高清影像系统</h3>
+            <p class="text-gray-600">
+              搭载专业级摄像头，支持多模式拍摄，配备先进的图像算法，无论是风景、人像还是夜景，都能轻松拍摄出专业级照片。
+            </p>
+          </div>
+          
+          <!-- 特色2 -->
+          <div class="bg-white rounded-xl shadow-sm p-8 hover-scale">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <i class="fa fa-bolt text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-dark mb-3">强劲性能</h3>
+            <p class="text-gray-600">
+              采用最新一代处理器，搭配大内存和高速存储，多任务处理流畅不卡顿，无论是日常使用还是大型游戏，都能轻松应对。
+            </p>
+          </div>
+          
+          <!-- 特色3 -->
+          <div class="bg-white rounded-xl shadow-sm p-8 hover-scale">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <i class="fa fa-battery-full text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-dark mb-3">超长续航</h3>
+            <p class="text-gray-600">
+              大容量电池搭配智能省电技术，支持快速充电和无线充电，让你告别电量焦虑，随时随地保持连接。
+            </p>
+          </div>
+          
+          <!-- 特色4 -->
+          <div class="bg-white rounded-xl shadow-sm p-8 hover-scale">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <i class="fa fa-shield text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-dark mb-3">安全防护</h3>
+            <p class="text-gray-600">
+              多重安全防护技术，包括面部识别、指纹识别、数据加密等，全方位保护你的隐私和数据安全。
+            </p>
+          </div>
+          
+          <!-- 特色5 -->
+          <div class="bg-white rounded-xl shadow-sm p-8 hover-scale">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <i class="fa fa-wifi text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-dark mb-3">高速网络</h3>
+            <p class="text-gray-600">
+              支持最新的5G网络技术，带来更快的下载速度和更稳定的网络连接，让你随时随地畅享高速网络。
+            </p>
+          </div>
+          
+          <!-- 特色6 -->
+          <div class="bg-white rounded-xl shadow-sm p-8 hover-scale">
+            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <i class="fa fa-magic text-primary text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-dark mb-3">智能系统</h3>
+            <p class="text-gray-600">
+              基于先进的人工智能技术，智能系统可以学习你的使用习惯，提供个性化的服务和建议，让手机使用更加便捷。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 产品对比 -->
+    <section class="py-16 bg-white">
+      <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark">产品对比</h2>
+          <p class="mt-4 text-gray-600 max-w-2xl mx-auto">比较我们不同系列的产品，选择最适合你的智能手机</p>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded-xl shadow-sm overflow-hidden">
+            <thead>
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">特性</th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ProMax</th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ultra</th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Lite</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">屏幕尺寸</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">6.7英寸</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">6.5英寸</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">6.3英寸</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">分辨率</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">3200×1440</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">2778×1284</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">2400×1080</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">处理器</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">旗舰处理器</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">高端处理器</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">中端处理器</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">摄像头</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">1亿像素</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">6400万像素</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">4800万像素</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">电池</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">5000mAh</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">4500mAh</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">4000mAh</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">防水等级</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">IP68</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">IP67</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">IP54</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">价格</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-primary">¥7,999</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-primary">¥6,499</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-primary">¥3,299</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 用户评价 -->
+    <section id="reviews" class="py-16 bg-gray-50">
+      <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark">用户评价</h2>
+          <p class="mt-4 text-gray-600 max-w-2xl mx-auto">听听我们的用户怎么说</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- 评价1 -->
+          <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+            </div>
+            <p class="text-gray-600 mb-6">"这款手机的拍照效果真的太棒了，特别是夜景模式，比我之前用的手机好太多了。电池续航也很给力，一天重度使用完全没问题。"</p>
+            <div class="flex items-center">
+              <img src="https://picsum.photos/100/100?random=10" alt="用户头像" class="w-12 h-12 rounded-full object-cover">
+              <div class="ml-4">
+                <h4 class="font-bold text-dark">李明</h4>
+                <p class="text-gray-500 text-sm">ProMax 用户</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 评价2 -->
+          <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star-half-o"></i>
+            </div>
+            <p class="text-gray-600 mb-6">"手机很轻薄，握感舒适，性能也很强劲，玩游戏完全不卡。屏幕显示效果非常好，色彩鲜艳，看视频很享受。唯一缺点可能是价格有点高。"</p>
+            <div class="flex items-center">
+              <img src="https://picsum.photos/100/100?random=11" alt="用户头像" class="w-12 h-12 rounded-full object-cover">
+              <div class="ml-4">
+                <h4 class="font-bold text-dark">王芳</h4>
+                <p class="text-gray-500 text-sm">Ultra 用户</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 评价3 -->
+          <div class="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star-o"></i>
+            </div>
+            <p class="text-gray-600 mb-6">"作为一个学生，这款Lite版手机对我来说性价比非常高，价格实惠但性能完全够用，电池续航也不错，非常满意这次购买。"</p>
+            <div class="flex items-center">
+              <img src="https://picsum.photos/100/100?random=12" alt="用户头像" class="w-12 h-12 rounded-full object-cover">
+              <div class="ml-4">
+                <h4 class="font-bold text-dark">张伟</h4>
+                <p class="text-gray-500 text-sm">Lite 用户</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 联系/订阅 -->
+    <section id="contact" class="py-16 bg-primary text-white">
+      <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-6">订阅我们的新品资讯</h2>
+          <p class="text-white/80 mb-8">第一时间获取最新产品信息和专属优惠</p>
+          
+          <form class="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
+            <input type="email" placeholder="输入您的邮箱地址" class="flex-grow px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 text-dark">
+            <button type="submit" class="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-medium transition-colors">
+              立即订阅
+            </button>
+          </form>
+          
+          <div class="mt-12 flex justify-center space-x-6">
+            <a href="#" class="text-white hover:text-white/80 transition-colors">
+              <i class="fa fa-weixin text-2xl"></i>
+            </a>
+            <a href="#" class="text-white hover:text-white/80 transition-colors">
+              <i class="fa fa-weibo text-2xl"></i>
+            </a>
+            <a href="#" class="text-white hover:text-white/80 transition-colors">
+              <i class="fa fa-instagram text-2xl"></i>
+            </a>
+            <a href="#" class="text-white hover:text-white/80 transition-colors">
+              <i class="fa fa-twitter text-2xl"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <h4 class="text-lg font-semibold mb-4">PhoneStore</h4>
+            <p class="text-gray-400">我们致力于为用户提供高品质的智能手机和优质的购物体验。</p>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+            <ul class="space-y-2 text-gray-400">
+              <li><a href="#" class="hover:text-white transition-colors">首页</a></li>
+              <li><a href="#news" class="hover:text-white transition-colors">热点新闻</a></li>
+              <li><a href="#products" class="hover:text-white transition-colors">热门产品</a></li>
+              <li><a href="#features" class="hover:text-white transition-colors">特色</a></li>
+              <li><a href="#organization" class="hover:text-white transition-colors">组织架构</a></li>
+              <li><a href="#reviews" class="hover:text-white transition-colors">评价</a></li>
+              <li><a href="#contact" class="hover:text-white transition-colors">联系我们</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">支持</h4>
+            <ul class="space-y-2 text-gray-400">
+              <li><a href="#" class="hover:text-white transition-colors">帮助中心</a></li>
+              <li><a href="#" class="hover:text-white transition-colors">售后服务</a></li>
+              <li><a href="#" class="hover:text-white transition-colors">常见问题</a></li>
+              <li><a href="#" class="hover:text-white transition-colors">保修政策</a></li>
+              <li><a href="#" class="hover:text-white transition-colors">维修网点</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">联系我们</h4>
+            <ul class="space-y-2 text-gray-400">
+              <li><i class="fa fa-map-marker mr-2"></i> 北京市海淀区科技园区</li>
+              <li><i class="fa fa-phone mr-2"></i> 400-123-4567</li>
+              <li><i class="fa fa-envelope mr-2"></i> contact@phonestore.com</li>
+              <li><i class="fa fa-clock-o mr-2"></i> 周一至周日 9:00-21:00</li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+          <p>© 2025 PhoneStore. 保留所有权利.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // 导航栏滚动效果
+    $(window).scroll(function() {
+      if ($(this).scrollTop() > 50) {
+        $('#navbar').addClass('shadow-md');
+        $('#navbar').removeClass('bg-white/95');
+        $('#navbar').addClass('bg-white');
+      } else {
+        $('#navbar').removeClass('shadow-md');
+        $('#navbar').addClass('bg-white/95');
+        $('#navbar').removeClass('bg-white');
+      }
+    });
+    
+    // 移动端菜单切换
+    $('#mobile-menu-button').click(function() {
+      $('#mobile-menu').toggleClass('hidden');
+    });
+    
+    // 轮播图功能
+    let currentSlide = 0;
+    const slides = $('.carousel-item');
+    const indicators = $('.carousel-indicator');
+    const totalSlides = slides.length;
+    
+    function updateCarousel() {
+      $('.carousel-container').css('transform', `translateX(-${currentSlide * 100}%)`);
+      
+      // 更新指示器
+      indicators.removeClass('bg-primary');
+      indicators.addClass('bg-gray-300');
+      indicators.eq(currentSlide).removeClass('bg-gray-300');
+      indicators.eq(currentSlide).addClass('bg-primary');
+    }
+    
+    // 下一张幻灯片
+    $('#next-btn').click(function() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateCarousel();
+    });
+    
+    // 上一张幻灯片
+    $('#prev-btn').click(function() {
+      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+      updateCarousel();
+    });
+    
+    // 点击指示器切换幻灯片
+    indicators.click(function() {
+      currentSlide = $(this).data('index');
+      updateCarousel();
+    });
+    
+    // 自动轮播
+    setInterval(function() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateCarousel();
+    }, 5000);
+    
+    // 组织树节点切换
+    function toggleNode(icon) {
+      var children = icon.closest('.org-tree-node').nextElementSibling;
+      var isOpen = icon.classList.contains('open');
+      
+      if (isOpen) {
+        icon.classList.remove('open');
+        children.classList.add('hidden');
+      } else {
+        icon.classList.add('open');
+        children.classList.remove('hidden');
+      }
+    }
+    
+    // 新闻轮播功能
+    let currentNewsSlide = 0;
+    const newsContainer = $('#news-container');
+    const newsSlides = $('.news-card');
+    const newsDots = $('.news-dot');
+    const totalNewsSlides = newsSlides.length;
+    
+    // 计算每次滚动的距离
+    function calculateScrollAmount() {
+      if (window.innerWidth >= 1024) { // lg
+        return 100 / 3; // 一次滚动1/3
+      } else if (window.innerWidth >= 768) { // md
+        return 50; // 一次滚动1/2
+      } else {
+        return 100; // 一次滚动全部
+      }
+    }
+    
+        function updateNewsCarousel() {
+      const scrollAmount = calculateScrollAmount();
+      newsContainer.css('transform', `translateX(-${currentNewsSlide * scrollAmount}%)`);
+      
+      // 更新指示器
+      newsDots.removeClass('active');
+      newsDots.eq(currentNewsSlide).addClass('active');
+    }
+    
+    // 下一张新闻
+    $('#news-next-btn').click(function() {
+      const maxSlides = window.innerWidth >= 1024 ? totalNewsSlides - 2 : window.innerWidth >= 768 ? totalNewsSlides - 1 : totalNewsSlides;
+      currentNewsSlide = (currentNewsSlide + 1) % maxSlides;
+      updateNewsCarousel();
+    });
+    
+    // 上一张新闻
+    $('#news-prev-btn').click(function() {
+      const maxSlides = window.innerWidth >= 1024 ? totalNewsSlides - 2 : window.innerWidth >= 768 ? totalNewsSlides - 1 : totalNewsSlides;
+      currentNewsSlide = (currentNewsSlide - 1 + maxSlides) % maxSlides;
+      updateNewsCarousel();
+    });
+    
+    // 点击指示器切换新闻
+    newsDots.click(function() {
+      currentNewsSlide = $(this).data('index');
+      updateNewsCarousel();
+    });
+    
+    // 窗口大小改变时重新计算
+    $(window).resize(function() {
+      updateNewsCarousel();
+    });
+    
+    // 自动轮播新闻
+    setInterval(function() {
+      const maxSlides = window.innerWidth >= 1024 ? totalNewsSlides - 2 : window.innerWidth >= 768 ? totalNewsSlides - 1 : totalNewsSlides;
+      currentNewsSlide = (currentNewsSlide + 1) % maxSlides;
+      updateNewsCarousel();
+    }, 5000);
+    
+    // ECharts 图表初始化
+    $(document).ready(function() {
+      // 销量趋势图 - 折线图
+      const salesChart = echarts.init(document.getElementById('salesChart'));
+      const salesData = [
+        { name: 'ProMax', value: 128, month: '1月' },
+        { name: 'ProMax', value: 190, month: '2月' },
+        { name: 'ProMax', value: 230, month: '3月' },
+        { name: 'Ultra', value: 96, month: '1月' },
+        { name: 'Ultra', value: 140, month: '2月' },
+        { name: 'Ultra', value: 210, month: '3月' },
+        { name: 'Lite', value: 156, month: '1月' },
+        { name: 'Lite', value: 200, month: '2月' },
+        { name: 'Lite', value: 280, month: '3月' }
+      ];
+      
+      const salesOption = {
+        title: {
+          text: '近3个月销量趋势',
+          left: 'center',
+          textStyle: {
+            color: '#333'
+          }
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: ['1月', '2月', '3月'],
+          axisLine: {
+            lineStyle: {
+              color: '#999'
+            }
+          },
+          axisTick: {
+            show: false
+          },
+          axisLabel: {
+            textStyle: {
+              color: '#666'
+            }
+          }
+        },
+        yAxis: {
+          type: 'value',
+          splitLine: {
+            lineStyle: {
+              color: '#eee'
+            }
+          },
+          axisLine: {
+            lineStyle: {
+              color: '#999'
+            }
+          },
+          axisLabel: {
+            textStyle: {
+              color: '#666'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'ProMax',
+            type: 'line',
+            data: salesData.filter(item => item.name === 'ProMax').map(item => item.value),
+            symbolSize: 10,
+            itemStyle: {
+              color: '#165DFF'
+            },
+            lineStyle: {
+              width: 3,
+              color: '#165DFF'
+            },
+            areaStyle: {
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [{
+                  offset: 0,
+                  color: 'rgba(22, 93, 255, 0.1)'
+                }, {
+                  offset: 1,
+                  color: 'rgba(22, 93, 255, 0)'
+                }]
+              }
+            }
+          },
+          {
+            name: 'Ultra',
+            type: 'line',
+            data: salesData.filter(item => item.name === 'Ultra').map(item => item.value),
+            symbolSize: 10,
+            itemStyle: {
+              color: '#36CFC9'
+            },
+            lineStyle: {
+              width: 3,
+              color: '#36CFC9'
+            },
+            areaStyle: {
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [{
+                  offset: 0,
+                  color: 'rgba(54, 207, 201, 0.1)'
+                }, {
+                  offset: 1,
+                  color: 'rgba(54, 207, 201, 0)'
+                }]
+              }
+            }
+          },
+          {
+            name: 'Lite',
+            type: 'line',
+            data: salesData.filter(item => item.name === 'Lite').map(item => item.value),
+            symbolSize: 10,
+            itemStyle: {
+              color: '#FF4D4F'
+            },
+            lineStyle: {
+              width: 3,
+              color: '#FF4D4F'
+            },
+            areaStyle: {
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [{
+                  offset: 0,
+                  color: 'rgba(255, 77, 79, 0.1)'
+                }, {
+                  offset: 1,
+                  color: 'rgba(255, 77, 79, 0)'
+                }]
+              }
+            }
+          }
+        ]
+      };
+      
+      salesChart.setOption(salesOption);
+      
+      // 产品销量占比饼图
+      const pieChart = echarts.init(document.getElementById('pieChart'));
+      const pieData = [
+        { value: 230, name: 'ProMax', itemStyle: { color: '#165DFF' } },
+        { value: 190, name: 'Ultra', itemStyle: { color: '#36CFC9' } },
+        { value: 280, name: 'Lite', itemStyle: { color: '#FF4D4F' } }
+      ];
+      
+      const pieOption = {
+        title: {
+          text: '产品销量占比',
+          left: 'center',
+          textStyle: {
+            color: '#333'
+          }
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: '{a} <br/>{b}: {c} ({d}%)'
+        },
+        series: [{
+          name: '销量占比',
+          type: 'pie',
+          radius: ['40%', '75%'],
+          center: ['50%', '60%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: {
+            show: true,
+            formatter: '{b}: {d}%'
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: '18',
+              fontWeight: 'bold'
+            }
+          },
+          labelLine: {
+            show: true
+          },
+          data: pieData
+        }]
+      };
+      
+      pieChart.setOption(pieOption);
+    });
+    
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 80,
+            behavior: 'smooth'
+          });
+          
+          // 如果是移动端，点击导航链接后关闭菜单
+          if (window.innerWidth < 768) {
+            $('#mobile-menu').addClass('hidden');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
